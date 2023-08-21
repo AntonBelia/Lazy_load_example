@@ -1,21 +1,21 @@
 body {
-  text-align: center;
-  margin: 0 auto;
   background-color: #8f8686;
   color: black;
 }
 .container {
-  padding: 30px;
+  text-align: center;
   background-color: #8f8585;
 }
 .images-gallery {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   row-gap: 10px;
-  column-gap: 20px;
+  column-gap: 10px;
 }
 .image-wrapper {
+  display: block;
   background-color: #3c3838;
   border-radius: 10px;
   color: rgb(224, 210, 210);
@@ -23,6 +23,19 @@ body {
 }
 
 .img {
-  width: 600px;
+  
+  max-width: 500px;
   border-radius: 10px;
+}
+
+@media screen and (max-width: 600px) {
+  .img {
+    max-width: 400px;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .img {
+    max-width: 300px;
+  }
 }
