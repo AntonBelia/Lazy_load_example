@@ -6,6 +6,21 @@ class ImagesGallery {
     this.#imagesGalleryWrapper = imagesGalleryWrapper !== null ? imagesGalleryWrapper : document.body.appendChild(document.createElement("div"));
   };
 
+  #createObserver = () => {
+    const allImages = document.querySelectorAll('.images-gallery');
+    const lastChild = document.querySelector('.images-gallery:last-chald');
+
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry)=>{
+        console.log(entry.target)
+        this.fetchImages(2);
+      })
+
+    }, {threshold: 0.8})
+
+    observer.observe(lastChild)
+  }
+
   #renderImageCard = (url) => {
     return `
 		<div class="image-wrapper">
@@ -19,13 +34,14 @@ class ImagesGallery {
       const imageWrapper = document.createElement("div");
       imageWrapper.innerHTML = this.#renderImageCard(item.download_url);
       this.#imagesGalleryWrapper.appendChild(imageWrapper);
+      this.#createObserver();
     }
   };
 
-  fetchImages = async () => {
+  fetchImages = async (numberPage) => {
     try {
       const response = await fetch(
-        "https://picsum.photos/v2/list?page=1&limit=10"
+        `https://picsum.photos/v2/list?page=${numberPage}&limit=10`
       );
       const img = await response.json();
       this.#addImageCardsToDOM(img);
@@ -40,5 +56,5 @@ class ImagesGallery {
 
   const imagesGallery = new ImagesGallery(imagesGalleryWrapper);
 
-  imagesGallery.fetchImages();
+  imagesGallery.fetchImages(1);
 })();
