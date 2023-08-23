@@ -2,6 +2,7 @@
 
 class ImagesGallery {
   #imagesGalleryWrapper;
+  #numberPage = 1;
   constructor(imagesGalleryWrapper) {
     this.#imagesGalleryWrapper = imagesGalleryWrapper !== null ? imagesGalleryWrapper : document.body.appendChild(document.createElement("div"));
   };
@@ -12,13 +13,14 @@ class ImagesGallery {
 
     const observer = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry)=>{
-        console.log(entry.target)
-        this.fetchImages(2);
+        if (entry === lastChild) {
+          this.fetchImages();
+        }
       })
 
     }, {threshold: 0.8})
 
-    observer.observe(lastChild)
+    observer.observe(allImages)
   }
 
   #renderImageCard = (url) => {
@@ -38,13 +40,14 @@ class ImagesGallery {
     }
   };
 
-  fetchImages = async (numberPage) => {
+  fetchImages = async () => {
     try {
       const response = await fetch(
-        `https://picsum.photos/v2/list?page=${numberPage}&limit=10`
+        `https://picsum.photos/v2/list?page=${this.#numberPage}&limit=10`
       );
       const img = await response.json();
       this.#addImageCardsToDOM(img);
+      this.#numberPage++
     } catch (error) {
       throw new Error('Data loading error:', error)
     }
@@ -56,5 +59,5 @@ class ImagesGallery {
 
   const imagesGallery = new ImagesGallery(imagesGalleryWrapper);
 
-  imagesGallery.fetchImages(1);
+  imagesGallery.fetchImages();
 })();
