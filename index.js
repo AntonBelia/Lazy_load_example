@@ -2,62 +2,68 @@
 
 class ImagesGallery {
   #imagesGalleryWrapper;
-  #numberPage = 1;
+  #pageNumber = 1;
   constructor(imagesGalleryWrapper) {
-    this.#imagesGalleryWrapper = imagesGalleryWrapper !== null ? imagesGalleryWrapper : document.body.appendChild(document.createElement("div"));
-  };
-
-  #createObserver = () => {
-    const allImages = document.querySelectorAll('.images-gallery');
-    const lastChild = document.querySelector('.images-gallery:last-chald');
-
-    const observer = new IntersectionObserver((entries, observer) => {
-      entries.forEach((entry)=>{
-        if (entry === lastChild) {
-          this.fetchImages();
-        }
-      })
-
-    }, {threshold: 0.8})
-
-    observer.observe(allImages)
+    this.#imagesGalleryWrapper =
+      imagesGalleryWrapper !== null
+        ? imagesGalleryWrapper
+        : document.body.appendChild(document.createElement("div"));
   }
+
+  #initializeObserver = () => {
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          this.initialize();
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.1,
+    });
+    observer.observe(this.#imagesGalleryWrapper);
+  };
 
   #renderImageCard = (url) => {
     return `
-		<div class="image-wrapper">
-			<img class="img" src="${url}">
-		</div>
+			<img class="img" src="${url}" alt="Image" loading="lazy">
 		`;
   };
 
   #addImageCardsToDOM = (arr) => {
     for (let item of arr) {
       const imageWrapper = document.createElement("div");
+      imageWrapper.classList.add("image-wrapper");
       imageWrapper.innerHTML = this.#renderImageCard(item.download_url);
       this.#imagesGalleryWrapper.appendChild(imageWrapper);
-      this.#createObserver();
     }
+
   };
 
-  fetchImages = async () => {
+  #fetchImages = async () => {
     try {
       const response = await fetch(
-        `https://picsum.photos/v2/list?page=${this.#numberPage}&limit=10`
+        `https://picsum.photos/v2/list?page=${this.#pageNumber}&limit=10`
       );
+      this.#pageNumber++;
       const img = await response.json();
       this.#addImageCardsToDOM(img);
-      this.#numberPage++
     } catch (error) {
-      throw new Error('Data loading error:', error)
+      throw new Error("Data loading error:", error);
     }
   };
-};
+  initialize = () => {
+    this.#fetchImages();
+    this.#initializeObserver();
+  }
+
+}
 
 (() => {
   const imagesGalleryWrapper = document.querySelector(".images-gallery");
 
   const imagesGallery = new ImagesGallery(imagesGalleryWrapper);
 
-  imagesGallery.fetchImages();
+  imagesGallery.initialize();
 })();
