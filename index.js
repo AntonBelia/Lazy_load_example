@@ -2,27 +2,12 @@
 
 class ImagesGallery {
   #imagesGalleryWrapper;
-  #pageNumber = 1;
   constructor(imagesGalleryWrapper) {
-    this.#imagesGalleryWrapper =
-      imagesGalleryWrapper !== null
-        ? imagesGalleryWrapper
-        : document.body.appendChild(document.createElement("div"));
-  }
-
-  #initializeObserver = () => {
-    const observer = new IntersectionObserver((entries, observer) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          this.initialize();
-        }
-      });
-    }, {
-      root: null,
-      rootMargin: "0px",
-      threshold: 0.1,
-    });
-    observer.observe(this.#imagesGalleryWrapper);
+    if (!(imagesGalleryWrapper instanceof Element)) {
+      throw new Error('imagesGalleryWrapper must be a DOM element')
+    }
+    this.#imagesGalleryWrapper = imagesGalleryWrapper
+    this.pageNumber = 1;
   };
 
   #renderImageCard = (url) => {
@@ -41,29 +26,39 @@ class ImagesGallery {
 
   };
 
-  #fetchImages = async () => {
+  fetchImages = async () => {
     try {
-      const response = await fetch(
-        `https://picsum.photos/v2/list?page=${this.#pageNumber}&limit=10`
-      );
-      this.#pageNumber++;
+      const response = await fetch(`https://picsum.photos/v2/list?page=${this.pageNumber}&limit=10`);
+      this.pageNumber++;
       const img = await response.json();
       this.#addImageCardsToDOM(img);
     } catch (error) {
       throw new Error("Data loading error:", error);
     }
   };
-  initialize = () => {
-    this.#fetchImages();
-    this.#initializeObserver();
-  }
 
 }
 
 (() => {
   const imagesGalleryWrapper = document.querySelector(".images-gallery");
-
+  const loadingControl = document.querySelector(".lds-roller");
+  
   const imagesGallery = new ImagesGallery(imagesGalleryWrapper);
 
-  imagesGallery.initialize();
+  imagesGallery.fetchImages();
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        imagesGallery.fetchImages()
+        if(imagesGallery.pageNumber === 10) {
+          observer.disconnect(loadingControl)
+          loadingControl.classList.add('hide')
+        }
+      }
+    });
+  }, {threshold: 1});
+
+  observer.observe(loadingControl);  
+
 })();
